@@ -1,0 +1,32 @@
+{
+	"name": "insights-server",
+	"version": "1.0.0",
+	"description": "Community-oriented platform for writers to create and publish text-based content in real-time with other writers.",
+	"main": "index.js",
+	"scripts": {
+		"start": "nodemon --trace-warnings app.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/farhansolodev/insights-server.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/farhansolodev/insights-server/issues"
+	},
+	"homepage": "https://github.com/farhansolodev/insights-server#readme",
+	"dependencies": {
+		"express": "^4.17.2",
+		"firebase": "^9.6.2",
+		"firebase-admin": "^10.0.1",
+		"socket.io": "^4.4.1",
+		"sqlite": "^4.0.23",
+		"uuid": "^8.3.2"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.15"
+	}
+}
