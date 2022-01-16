@@ -40,9 +40,9 @@ module.exports = {
 			})
 			console.log("3) Collab document [" + collab.id + "] created with no content")
 
-			// room = await VS.setCollabId(room.id, collab.id)
-			// room.set("collabId", collab.id)
-			// console.log("4) Collab Id ["+ collab.id +"] set as Virtual Space ["+ room.id +"]'s CollabId")
+            VS.setCollabId(room.id, collab.id)
+            room = VS.getRoomById(room.id)
+			console.log("4) Collab Id ["+ collab.id +"] set as Virtual Space ["+ room.id +"]'s CollabId")
 
 			res.status(201).send({
 				message: "Virtual Space created with blank collab",
@@ -61,8 +61,7 @@ module.exports = {
 			})
             console.log("6) Websocket connection handler registered")
             
-            let user = await User.addRoom(req.body.USER_ID, room.id)
-            console.log(user)
+            User.addRoom(req.body.USER_ID, room.id)
             console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
 
 		} catch (error) {
