@@ -1,29 +1,36 @@
-var firebaseAdmin = require("firebase-admin")
-
 const SERVICE_ACCOUNT_KEY = require("./keys/serviceAccountKey")
 const PORT = process.env.PORT || 3000
 
 // Initialize Firebase
-const firebaseApp = firebaseAdmin.initializeApp(
+const firebase = require("firebase-admin")
+const firebaseApp = firebase.initializeApp(
 	{
-		credential: firebaseAdmin.credential.cert(SERVICE_ACCOUNT_KEY),
+		credential: firebase.credential.cert(SERVICE_ACCOUNT_KEY),
 	},
 	"insights-server"
 )
 
 firebaseApp && console.log(`Firebase app [${firebaseApp.name}] initialized... `)
 
-const db = firebaseAdmin.firestore(firebaseApp)
+;(module.exports.db = firebase.firestore(firebaseApp)) && console.log(`Connected to Firestore... `)
 
-db && console.log(`Connected to Firestore... `)
+// Initialize Express
+const express = require("express")
+const app = express()
+const http = require("http").createServer(app)
+module.exports.io = require("socket.io")(http)
 
-const io = require("socket.io")(PORT)
+app.use(express.json())
 
-io && console.log(`Socket.io listening on port ${PORT}... `)
-
-const { connectionHandler } = require("./handlers")
-io.on("connection", connectionHandler)
-
-module.exports = {
-	db
+try {
+	const virtualSpaceRoutes = require("./routes/virtualSpaceRoutes")
+	app.use("/vs", virtualSpaceRoutes)
+} catch (error) {
+	throw error
 }
+
+http.listen(PORT, () => console.log(`Listening for HTTP requests on port ${PORT}... `))
+
+// module.exports = {
+// 	db, io
+// }
