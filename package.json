@@ -4,7 +4,7 @@
 	"description": "Community-oriented platform for writers to create and publish text-based content in real-time with other writers.",
 	"main": "index.js",
 	"scripts": {
-		"start": "nodemon --trace-warnings app.js",
+		"start": "nodemon app.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {

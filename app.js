@@ -1,52 +1,36 @@
-const express = require("express")
-var firebaseAdmin = require("firebase-admin")
-
-const config = require("./config")
 const SERVICE_ACCOUNT_KEY = require("./keys/serviceAccountKey")
-const PORT = process.env.PORT || config.PORT
+const PORT = process.env.PORT || 3000
 
 // Initialize Firebase
-const firebaseApp = firebaseAdmin.initializeApp(
+const firebase = require("firebase-admin")
+const firebaseApp = firebase.initializeApp(
 	{
-		credential: firebaseAdmin.credential.cert(SERVICE_ACCOUNT_KEY),
+		credential: firebase.credential.cert(SERVICE_ACCOUNT_KEY),
 	},
 	"insights-server"
 )
 
-const db = firebaseAdmin.firestore(firebaseApp)
+firebaseApp && console.log(`Firebase app [${firebaseApp.name}] initialized... `)
+
+;(module.exports.db = firebase.firestore(firebaseApp)) && console.log(`Connected to Firestore... `)
 
 // Initialize Express
+const express = require("express")
 const app = express()
-const server = require("http").createServer(app)
+const http = require("http").createServer(app)
+module.exports.io = require("socket.io")(http)
 
 app.use(express.json())
-
-server.keepAliveTimeout = config.SERVER_TIMOUT_SECONDS * 1000
-
-// try {
-// 	const userRoutes = require("./routes/userRoutes")
-// 	app.use("/users", userRoutes)
-// } catch (error) {
-// 	console.error(error)
-// }
-
-// try {
-// 	const collabRoutes = require("./routes/collabRoutes")
-// 	app.use("/collabs", collabRoutes)
-// } catch (error) { 
-// 	console.error(error)
-// }
 
 try {
 	const virtualSpaceRoutes = require("./routes/virtualSpaceRoutes")
 	app.use("/vs", virtualSpaceRoutes)
 } catch (error) {
-	console.error(error)
+	throw error
 }
 
-server.listen(PORT, () => console.log(`---- Listening on port ${PORT} ----`))
+http.listen(PORT, () => console.log(`Listening for HTTP requests on port ${PORT}... `))
 
-module.exports = {
-	db,
-	server,
-}
+// module.exports = {
+// 	db, io
+// }

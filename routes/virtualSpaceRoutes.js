@@ -1,10 +1,13 @@
-const express = require('express')
+const express = require("express")
 const router = express.Router()
 
-const virtualSpaceControllers = require('../controllers/virtualSpaceController')
+const virtualSpaceControllers = require("../controllers/virtualSpaceControllers")
 
-// GET /vs/n932n9d9923
-// router.get("/:id", (req, res) => { 
+// POST /vs/
+router.post("/", virtualSpaceControllers.createVirtualSpace)
+
+// GET /vs/
+router.get("/", virtualSpaceControllers.joinVirtualSpace)
 //     const vs = {}
 //     vs.id = userControllers.getUserID(req, res)
 //     vs.name = userControllers.getUserName(req, res)
@@ -23,8 +26,6 @@ const virtualSpaceControllers = require('../controllers/virtualSpaceController')
 // router.get("/:id/editors", virtualSpaceControllers.getVSEditors)
 // router.get("/:id/owners", virtualSpaceControllers.getVSOwners)
 
-// POST /vs/
-router.post("/", virtualSpaceControllers.createVirtualSpace)
 
 // // PUT /vs/:id/ (TBA)
 // router.put("/:old_id/:new_id", virtualSpaceControllers.updateVSID)
