@@ -2,23 +2,25 @@ const VS = require("../models/VirtualSpace")
 const Collab = require("../models/Collab")
 const User = require("../models/User")
 const { io } = require("../app")
+const registerSocketHandlers = require("../socketHandlers")
 
 module.exports = {
 	/**
 	 * - user sends room name to create a virtual space
 	 * - the following actions are taken with firestore:
 	 *    - a new virtual space document is created, with firestore generating an id and the client providing:
-	 *       - the name of the room x
-	 *       - the user's id as the room's only owner and member x
-	 * - the user is connected to a socket.io room by the id of the virtual space document x
+	 *       - the name of the room
+	 *       - the user's id as the room's only owner and member
+	 * - the user is connected to a socket.io room by the id of the virtual space document
 	 * - a collab document with no content is created, with firestore generating:
-	 *    - a collab id x
+	 *    - a collab id
 	 *    - a read id and write id (PART 3)
 	 * - and the client providing:
-	 *    - the user's id as the collab's only owner x
+	 *    - the user's id as the collab's only owner
 	 * - the collab id is set as the virtual space's collab id
-	 * - information regarding the collab and virtual-space is sent to the user x
-	 * - the id of the document is added to the user's list of previously joined virtual spaces x
+	 * - information regarding the collab and virtual-space is sent to the user
+	 * - websocket handlers are registered
+	 * - the id of the document is added to the user's list of previously joined virtual spaces
 	 * @param {{
 	 *    USER_ID: string,
 	 *    ROOM_NAME: string
@@ -36,13 +38,13 @@ module.exports = {
 			console.log("2) Virtual Space document [" + room.id + "] created")
 
 			let collab = await Collab.create({
-			    owners: [req.body.USER_ID],
+				owners: [req.body.USER_ID],
 			})
 			console.log("3) Collab document [" + collab.id + "] created with no content")
 
-            VS.setCollabId(room.id, collab.id)
-            room = VS.getRoomById(room.id)
-			console.log("4) Collab Id ["+ collab.id +"] set as Virtual Space ["+ room.id +"]'s CollabId")
+			VS.setCollabId(room.id, collab.id)
+			room = VS.getRoomById(room.id)
+			console.log("4) Collab Id [" + collab.id + "] set as Virtual Space [" + room.id + "]'s CollabId")
 
 			res.status(201).send({
 				message: "Virtual Space created with blank collab",
@@ -57,17 +59,72 @@ module.exports = {
 			// So the handler is always ready before the user tries to connect through websocket
 			io.on("connection", (socket) => {
 				socket.join(room.id)
-				console.log("7) User [" + req.body.USER_ID + "] has joined Virtual Space [" + room.id + ": " + room.get("name") + "]")
+				console.log("6) User [" + req.body.USER_ID + "] has joined Virtual Space [" + room.id + ": " + room.get("name") + "]")
+				registerSocketHandlers(socket, room.id, req.body.USER_ID)
 			})
-            console.log("6) Websocket connection handler registered")
-            
-            User.addRoom(req.body.USER_ID, room.id)
-            console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
+			console.log("7) All Websocket event handlers registered")
 
+			User.addRoom(req.body.USER_ID, room.id)
+			console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
 		} catch (error) {
 			res.status(500).end()
 			throw error
 		}
+	},
+	/**
+	 * - user sends room id to join a virtual space
+	 * - room id is used to add user to a room
+	 * - websocket handlers are registered
+	 * - the following actions are taken with firestore:
+	 *   - the room id is used to find the virtual space document
+	 *   - the vs document is updated to add the user's id to the list of owners x
+	 *   - the vs data is sent to the user
+	 *   - the collabId from the vs document is used to send the collab document to the user
+	 *   - the collabId from the vs document is used to add the user's id to the list of owners of the collab
+	 *   - the user document's list of previously joined virtual spaces is updated to include the room id
+	 * @param {{
+	 *    USER_ID: string,
+	 *    ROOM_ID: string
+	 * }} req
+	 * @param {*} res
+	 */
+	joinVirtualSpace: async (req, res) => {
+		try {
+			console.log("1) User [" + req.body.USER_ID + "] requested to join Virtual Space [" + req.body.ROOM_ID + "]")
 
+			let room = VS.getRoomById(req.body.ROOM_ID)
+			console.log("2) Virtual Space document [" + room.id + "] found")
+
+			io.on("connection", (socket) => {
+				socket.join(room.id)
+				console.log("3) User [" + req.body.USER_ID + "] has joined Virtual Space [" + room.id + "]")
+				registerSocketHandlers(socket, room.id, req.body.USER_ID)
+			})
+			console.log("4) All Websocket event handlers registered")
+
+			VS.addOwners(room.id, [req.body.USER_ID])
+			console.log("5) User [" + req.body.USER_ID + "] added as an Owner of the Virtual Space [" + room.id + "]")
+
+			const collabId = (await room.get()).get("collabId")
+			let collab = Collab.getCollabById(collabId)
+			console.log("6) Collab document [" + collab.id + "] found")
+
+			res.status(200).send({
+				message: "Virtual Space succesfully joined",
+				data: {
+					room: room,
+					collab: collab,
+				},
+			})
+
+			Collab.addOwners(collab.id, [req.body.USER_ID])
+			console.log("7) User [" + req.body.USER_ID + "] added as an Owner of the Collab document [" + collab.id + "]")
+		
+			User.addRoom(req.body.USER_ID, room.id)
+			console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
+		} catch (error) {
+			res.status(500).end()
+			throw error
+		}
 	},
 }

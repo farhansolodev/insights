@@ -1,3 +1,4 @@
+const firebase = require("firebase-admin")
 const { db } = require("../app")
 
 module.exports = {
@@ -15,23 +16,32 @@ module.exports = {
 		} catch (error) {
 			throw error
 		}
-    },
-    getRoomById: (roomId) => { 
-        try {
-            return db.collection("virtual-spaces").doc(roomId)
-        } catch (error) {
-            throw error
-        }
-    },
-	setCollabId: (roomId, collabId) => {
-        try {
-            db.collection("virtual-spaces").doc(roomId).update({
-				collabId: collabId,
-            })
+	},
+	getRoomById: (roomId) => {
+		try {
+			return db.collection("virtual-spaces").doc(roomId)
 		} catch (error) {
 			throw error
 		}
-    },
+	},
+	setCollabId: (roomId, collabId) => {
+		try {
+			db.collection("virtual-spaces").doc(roomId).update({
+				collabId: collabId,
+			})
+		} catch (error) {
+			throw error
+		}
+	},
+	addOwners: (roomId, owners) => {
+		try {
+			db.collection("virtual-spaces").doc(roomId).update({
+				owners: firebase.firestore.FieldValue.arrayUnion(...owners),
+			})
+		} catch (error) {
+			throw error
+		}
+	},
 }
 
 // class VirtualSpace {

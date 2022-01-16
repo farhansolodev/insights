@@ -1,3 +1,4 @@
+const firebase = require("firebase-admin")
 const { db } = require("../app")
 
 const DEFAULTS = {
@@ -8,14 +9,30 @@ const DEFAULTS = {
 module.exports = {
 	create: (options) => {
 		try {
-			return db
-				.collection("collabs")
-				.add({
-					name: DEFAULTS.name,
-					displayPicture: DEFAULTS.picture,
-					owners: options.owners,
-					contributors: [],
-					content: [],
+			return db.collection("collabs").add({
+				name: DEFAULTS.name,
+				displayPicture: DEFAULTS.picture,
+				owners: options.owners,
+				contributors: [],
+				content: [],
+			})
+		} catch (error) {
+			throw error
+		}
+	},
+	getCollabById: (collabId) => {
+		try {
+			return db.collection("collabs").doc(collabId)
+		} catch (error) {
+			throw error
+		}
+	},
+	addOwners: (collabId, owners) => {
+		try {
+			db.collection("collabs")
+				.doc(collabId)
+				.update({
+					owners: firebase.firestore.FieldValue.arrayUnion(...owners),
 				})
 		} catch (error) {
 			throw error

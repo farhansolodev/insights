@@ -6,8 +6,8 @@ const virtualSpaceControllers = require("../controllers/virtualSpaceControllers"
 // POST /vs/
 router.post("/", virtualSpaceControllers.createVirtualSpace)
 
-// GET /vs/n932n9d9923
-// router.get("/:id", (req, res) => {
+// GET /vs/
+router.get("/", virtualSpaceControllers.joinVirtualSpace)
 //     const vs = {}
 //     vs.id = userControllers.getUserID(req, res)
 //     vs.name = userControllers.getUserName(req, res)
