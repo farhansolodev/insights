@@ -15,16 +15,23 @@ module.exports = {
 		} catch (error) {
 			throw error
 		}
-	},
+    },
+    getRoomById: (roomId) => { 
+        try {
+            return db.collection("virtual-spaces").doc(roomId)
+        } catch (error) {
+            throw error
+        }
+    },
 	setCollabId: (roomId, collabId) => {
-		try {
-			return db.collection("virtual-spaces").doc(roomId).update({
+        try {
+            db.collection("virtual-spaces").doc(roomId).update({
 				collabId: collabId,
-			})
+            })
 		} catch (error) {
 			throw error
 		}
-	},
+    },
 }
 
 // class VirtualSpace {
