@@ -8,25 +8,23 @@ const DEFAULTS = {
 module.exports = {
 	create: (options) => {
 		try {
-			return db
-				.collection("collabs")
-				.add({
-					name: options.name,
-					description: "",
-					pfp: DEFAULTS.picture,
-					previousRooms: [],
-					previousCollabs: [],
-				})
+			return db.collection("collabs").add({
+				name: options.name,
+				description: "",
+				pfp: DEFAULTS.picture,
+				previousRooms: [],
+				previousCollabs: [],
+			})
 		} catch (error) {
 			throw error
 		}
 	},
 
-	addRoom: async (userId, roomId) => {
+	addRoom: (userId, roomId) => {
 		try {
-			return db
-				.collection("users")
-				.doc(userId).update({
+			db.collection("users")
+				.doc(userId)
+				.update({
 					previousRooms: firebase.firestore.FieldValue.arrayUnion(roomId),
 				})
 		} catch (error) {
