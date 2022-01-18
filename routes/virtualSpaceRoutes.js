@@ -3,6 +3,12 @@ const router = express.Router()
 
 const virtualSpaceControllers = require("../controllers/virtualSpaceControllers")
 
+router.use("*", (req, res, next) => {
+	console.log(`Request body: ${JSON.stringify(req.body)}`)
+	res.header("Access-Control-Allow-Origin", "http://localhost:3006")
+	next()
+})
+
 // POST /vs/
 router.post("/", virtualSpaceControllers.createVirtualSpace)
 
@@ -25,7 +31,6 @@ router.get("/", virtualSpaceControllers.joinVirtualSpace)
 // router.get("/:id/readers", virtualSpaceControllers.getVSReaders)
 // router.get("/:id/editors", virtualSpaceControllers.getVSEditors)
 // router.get("/:id/owners", virtualSpaceControllers.getVSOwners)
-
 
 // // PUT /vs/:id/ (TBA)
 // router.put("/:old_id/:new_id", virtualSpaceControllers.updateVSID)
