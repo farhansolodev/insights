@@ -31,26 +31,29 @@ module.exports = {
 		try {
 			console.log("1) User [" + req.body.USER_ID + "] requested to create a Virtual Space and join it")
 
-			let room = await VS.create({
+			let roomRef = await VS.create({
 				name: req.body.ROOM_NAME,
 				owners: [req.body.USER_ID],
 			})
-			console.log("2) Virtual Space document [" + room.id + "] created")
 
-			let collab = await Collab.create({
+			console.log("2) Virtual Space document [" + roomRef.id + "] created")
+
+			let collabRef = await Collab.create({
 				owners: [req.body.USER_ID],
 			})
-			console.log("3) Collab document [" + collab.id + "] created with no content")
+			console.log("3) Collab document [" + collabRef.id + "] created with no content")
 
-			VS.setCollabId(room.id, collab.id)
-			room = VS.getRoomById(room.id)
-			console.log("4) Collab Id [" + collab.id + "] set as Virtual Space [" + room.id + "]'s CollabId")
+			VS.setCollabId(roomRef.id, collabRef.id)
+			roomRef = VS.getRoomById(roomRef.id)
+			console.log("4) Collab Id [" + collabRef.id + "] set as Virtual Space [" + roomRef.id + "]'s CollabId")
+
+			const [room, collab] = await Promise.all([roomRef.get(), collabRef.get()])
 
 			res.status(201).send({
 				message: "Virtual Space created with blank collab",
 				data: {
-					room: room,
-					collab: collab,
+					room: room["_fieldsProto"],
+					collab: collab["_fieldsProto"],
 				},
 			})
 			console.log("5) Sent Virtual Space and Collab data to user")
@@ -60,17 +63,18 @@ module.exports = {
 			io.on("connection", (socket) => {
 				socket.join(room.id)
 				console.log("6) User [" + req.body.USER_ID + "] has joined Virtual Space [" + room.id + ": " + room.get("name") + "]")
-				registerSocketHandlers(socket, room.id, req.body.USER_ID)
+				registerSocketHandlers(socket, room.id)
 			})
 			console.log("7) All Websocket event handlers registered")
 
 			User.addRoom(req.body.USER_ID, room.id)
 			console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
 		} catch (error) {
-			res.status(500).end()
+			res.status(500).send("Error creating Virtual Space: " + error)
 			throw error
 		}
 	},
+
 	/**
 	 * - user sends room id to join a virtual space
 	 * - room id is used to add user to a room
@@ -92,36 +96,39 @@ module.exports = {
 		try {
 			console.log("1) User [" + req.body.USER_ID + "] requested to join Virtual Space [" + req.body.ROOM_ID + "]")
 
-			let room = VS.getRoomById(req.body.ROOM_ID)
-			console.log("2) Virtual Space document [" + room.id + "] found")
+			let roomRef = VS.getRoomById(req.body.ROOM_ID)
+			console.log("2) Virtual Space document [" + roomRef.id + "] found")
 
-			io.on("connection", (socket) => {
-				socket.join(room.id)
-				console.log("3) User [" + req.body.USER_ID + "] has joined Virtual Space [" + room.id + "]")
-				registerSocketHandlers(socket, room.id, req.body.USER_ID)
-			})
-			console.log("4) All Websocket event handlers registered")
+			VS.addOwners(roomRef.id, [req.body.USER_ID])
+			console.log("5) User [" + req.body.USER_ID + "] added as an Owner of the Virtual Space [" + roomRef.id + "]")
 
-			VS.addOwners(room.id, [req.body.USER_ID])
-			console.log("5) User [" + req.body.USER_ID + "] added as an Owner of the Virtual Space [" + room.id + "]")
+			const collabId = (await roomRef.get()).get("collabId")
+			let collabRef = Collab.getCollabById(collabId)
+			console.log("6) Collab document [" + collabRef.id + "] found")
 
-			const collabId = (await room.get()).get("collabId")
-			let collab = Collab.getCollabById(collabId)
-			console.log("6) Collab document [" + collab.id + "] found")
+			const [room, collab] = await Promise.all([roomRef.get(), collabRef.get()])
 
 			res.status(200).send({
 				message: "Virtual Space succesfully joined",
 				data: {
-					room: room,
-					collab: collab,
+					room: room["_fieldsProto"],
+					collab: collab["_fieldsProto"],
 				},
 			})
+			console.log("7) Sent Virtual Space and Collab data to user")
+
+			io.on("connection", (socket) => {
+				socket.join(roomRef.id)
+				console.log("3) User [" + req.body.USER_ID + "] has joined Virtual Space [" + roomRef.id + "]")
+				registerSocketHandlers(socket, roomRef.id)
+			})
+			console.log("4) All Websocket event handlers registered")
 
 			Collab.addOwners(collab.id, [req.body.USER_ID])
-			console.log("7) User [" + req.body.USER_ID + "] added as an Owner of the Collab document [" + collab.id + "]")
-		
+			console.log("8) User [" + req.body.USER_ID + "] added as an Owner of the Collab document [" + collab.id + "]")
+
 			User.addRoom(req.body.USER_ID, room.id)
-			console.log("8) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
+			console.log("9) Updated User [" + req.body.USER_ID + "]'s list of previously joined Virtual Spaces")
 		} catch (error) {
 			res.status(500).end()
 			throw error
