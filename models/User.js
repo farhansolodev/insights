@@ -1,5 +1,5 @@
 const firebase = require("firebase-admin")
-const { db } = require("../app")
+const db = require("../firebase")
 
 const DEFAULTS = {
 	picture: "gs://insights-server-fd594.appspot.com/profile-pictures/default_profile_picture.jpg",

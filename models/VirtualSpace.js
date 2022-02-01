@@ -1,5 +1,5 @@
 const firebase = require("firebase-admin")
-const { db } = require("../app")
+const db = require("../firebase")
 
 module.exports = {
 	create: (options) => {
