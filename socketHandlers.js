@@ -33,4 +33,8 @@ module.exports = (socket) => {
 	socket.on("send-changes", (delta, { roomId }) => {
       	socket.to(roomId).emit("receive-changes", delta)
     })
+
+	socket.on("send_message", (data) => {
+    	socket.to(data.roomId).emit("receive_message", data);
+  	});
 }
