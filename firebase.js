@@ -1,10 +1,10 @@
 const admin = require("firebase-admin")
-const SERVICE_ACCOUNT_KEY = require("./keys/serviceAccountKey")
+// const SERVICE_ACCOUNT_KEY = require("./keys/serviceAccountKey")
 // const { initializeApp } = require("firebase-admin/app")
 const { getFirestore } = require("firebase-admin/firestore")
 
 const app = admin.initializeApp({
-  credential: admin.credential.cert(SERVICE_ACCOUNT_KEY)
+  credential: admin.credential.cert(process.env.firebase_key)
 }, 'virtual-spaces');
 console.log(`Firebase app [${app.name}] initialized...`)
 
