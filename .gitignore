@@ -2,7 +2,7 @@
 server/
 
 # private keys
-# keys/
+keys/
 
 # Logs
 logs
