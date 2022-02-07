@@ -32,7 +32,7 @@ module.exports = (socket) => {
 	})
 
 	socket.on("send-changes", (delta, { roomId }) => {
-		console.log('TEXT EDITOR CHANGES - SEND CHANGES: ' + delta)
+		console.log('TEXT EDITOR CHANGES - SEND CHANGES: ' + delta, " - ROOM ID: " + roomId)
       	socket.to(roomId).emit("receive-changes", delta)
     })
 
