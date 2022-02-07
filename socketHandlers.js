@@ -27,15 +27,17 @@ module.exports = (socket) => {
 
 	// start listening for user data sent by that user to a new user
 	socket.on('user-joined ack', (socketid, data) => { 
+		console.log('USER JOINED ACK: ' + data)
 		socket.to(socketid).emit("join-room ack", data)
 	})
 
 	socket.on("send-changes", (delta, { roomId }) => {
-		console.log('TEXT EDITOR CHANGES: ' + delta)
+		console.log('TEXT EDITOR CHANGES - SEND CHANGES: ' + delta)
       	socket.to(roomId).emit("receive-changes", delta)
     })
 
 	socket.on("send_message", (data) => {
+		console.log('TEXT EDITOR CHANGES - SEND MESSAGE: ' + data)
     	socket.to(data.roomId).emit("receive_message", data);
   	});
 }
