@@ -1,2 +1,3 @@
-# insights
-Community-oriented platform for writers to create and publish text-based content in real-time with other writers.
+# Insights virtual-space server
+
+Backend for [Insights client](https://github.com/farhansolodev/insights-client)
